@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/login-page';
+import { TEST_USERS } from './test-data/users';
 
 /**
  * Test Suite: Add to Cart Functionality
@@ -9,13 +11,9 @@ import { test, expect } from '@playwright/test';
 test.describe('Add to Cart', () => {
   // Setup: Login before each test
   test.beforeEach(async ({ page }) => {
-    // Navigate to the application
-    await page.goto('https://www.saucedemo.com/');
-
-    // Perform login
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(TEST_USERS.standard.username, TEST_USERS.standard.password);
 
     // Verify we're on the inventory page
     await expect(page).toHaveURL(/.*inventory.html/);

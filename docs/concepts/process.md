@@ -1,7 +1,6 @@
-# Test Automation Framework - Complete Process
+# Testing Process
 
-This document captures the systematic approach to test automation 
-from project setup through execution. Usable with or without AI tools.
+Systematic approach to test automation from project setup through continuous improvement. Tool-agnostic — applies whether using Playwright, Selenium, Cypress, or any other framework.
 
 ---
 
@@ -15,7 +14,7 @@ from project setup through execution. Usable with or without AI tools.
 - [ ] What's the deployment pipeline? (CI/CD exists?)
 - [ ] Who are the stakeholders? (Dev, PM, other QA)
 
-### Tool Selection Decision Tree
+### Tool Selection
 **For web applications:**
 - Modern framework with good documentation → Playwright/Cypress
 - Legacy app with complex scenarios → Selenium
@@ -23,14 +22,13 @@ from project setup through execution. Usable with or without AI tools.
 
 **For API testing:**
 - TypeScript/JavaScript stack → Playwright API / Supertest
-- Java stack → REST Assured
 - Python stack → Pytest + Requests
 
 ### Setup Checklist
 - [ ] Install runtime (Node.js/Python/Java)
 - [ ] Install testing framework
 - [ ] Configure version control (Git)
-- [ ] Create folder structure (tests/, pages/, test-data/)
+- [ ] Create folder structure (tests/, pages/, test-data/, docs/)
 - [ ] Initialize CI/CD (GitHub Actions/Jenkins/etc)
 - [ ] Create project documentation (README, CLAUDE.md if using AI)
 
@@ -45,7 +43,6 @@ For each feature/flow, ask:
 3. How frequently does this change?
 4. What's the ROI of automating this?
 
-**Priority Matrix:**
 | Impact | Complexity | Priority |
 |--------|-----------|----------|
 | High | High | Automate First |
@@ -64,41 +61,48 @@ For each feature/flow, ask:
 
 ## Phase 3: Page Object Analysis
 
-### For Each Page/Screen
+For each page, work through these steps before writing any code.
 
-**1. Identify Purpose**
-- What is the user trying to accomplish?
-- What's the page called in product language?
+### Step 1 — Identify Purpose
+- What is the user trying to accomplish on this page?
+- What is the page called in product language?
 
-**2. Map Interactive Elements**
-| Element | Type | Count | Locator | Purpose |
-|---------|------|-------|---------|---------|
-| Username field | Input | 1 | data-test="username" | Login credential |
-| Add to cart | Button | Multiple | data-test="add-to-cart-{product}" | Add item |
+### Step 2 — Map Interactive Elements
+| Element | Type | Locator | Purpose |
+|---------|------|---------|---------|
+| Username field | Input | `data-test="username"` | Login credential |
+| Add to cart | Button (multiple) | `data-test="add-to-cart-{product}"` | Add item |
 
-**3. Map Display Elements**
+### Step 3 — Map Display Elements
 | Element | Type | Used For |
 |---------|------|----------|
 | Error message | Text | Validation feedback |
-| Cart count | Number | Items in cart |
+| Cart badge | Number | Items in cart |
 
-**4. Define Actions (Methods)**
+### Step 4 — Define Actions (Methods)
 Actions should:
-- Use clear verb names (login, addToCart, submitOrder)
-- Accept necessary parameters (username, productName)
-- Return useful values if needed (order confirmation number)
+- Use clear verb names: `login`, `addToCart`, `submitOrder`
+- Accept necessary parameters: `addToCart(productSlug: string)`
+- Return useful values if needed: `getCartCount(): Promise<number>`
 
-**5. Inspect Locators**
+### Step 5 — Inspect Locators
 Open DevTools for each element:
-- data-test attribute exists? → Use getByTestId()
-- No data-test? → Use getByRole() (accessibility tree)
-- Neither reliable? → Document the gap, use CSS/XPath as last resort
+- `data-test` attribute exists? → Use `getByTestId()`
+- No `data-test`? → Use `getByRole()` (accessibility tree)
+- Neither? → Document the gap, use CSS/XPath as last resort
 
-**6. Edge Cases**
-- What if page is empty?
-- What if there are 100 items vs 1?
+### Step 6 — Double Verification (AI-Native Workflow)
+Run both human and AI inspection, then compare:
+- **Human inspection** — inspect across different states (add item to cart, trigger errors). Catches dynamic elements.
+- **AI inspection** — scrape all `data-test` attributes on page load. Catches elements you visually missed.
+- **Compare** — what did each miss? Resolve disagreements. Build final element list.
+
+### Step 7 — Edge Cases
+- What if the page is empty?
+- What if there are 0 items vs 100?
 - What errors can appear?
 - What loading states exist?
+- What elements only appear after a state change?
 
 ---
 
@@ -130,7 +134,7 @@ Last resort: CSS selector or XPath
 - [ ] Does NOT depend on CSS classes
 - [ ] Does NOT depend on DOM hierarchy
 - [ ] Does NOT use index/position numbers
-- [ ] DOES reflect user-visible behavior
+- [ ] DOES reflect user-visible behaviour
 - [ ] DOES survive UI restyling
 
 ---
@@ -146,70 +150,60 @@ Each test should:
 - [ ] Have clear preconditions
 - [ ] Have meaningful assertions
 
-### Test Structure Template
-```
-test('should [expected behavior] when [condition]', async () => {
-  // ARRANGE - Set up preconditions
-  
-  // ACT - Perform the action
-  
-  // ASSERT - Verify the outcome
-})
+### Test Structure (Arrange / Act / Assert)
+```typescript
+test('should [expected behaviour] when [condition]', async ({ page }) => {
+  // ARRANGE — set up preconditions (usually in beforeEach)
+
+  // ACT — perform the action
+  await productsPage.addToCart('sauce-labs-backpack');
+
+  // ASSERT — verify the outcome
+  await expect(productsPage.cartBadge).toHaveText('1');
+});
 ```
 
 ### Precondition Patterns
-- Login → beforeEach hook
-- Specific data state → Test data setup
-- Clean environment → afterEach cleanup
+- Login → `beforeEach` hook using page object + TEST_USERS
+- Specific data state → test data setup in `test-data/`
+- Clean environment → `afterEach` cleanup if needed
 
 ---
 
 ## Phase 6: Assertion Design
-
-### What To Assert
 
 After every action, ask:
 1. What MUST be true if this worked?
 2. What could be TRUE but WRONG? (right format, wrong data)
 3. What side effects should NOT happen?
 
-### Assertion Selection Guide
+### Assertion Reference
 
-**Visibility:**
-- Element appears → `toBeVisible()`
-- Element hidden → `toBeHidden()`
-
-**Content:**
-- Exact text → `toHaveText('exact match')`
-- Contains text → `toContainText('partial')`
-- Input value → `toHaveValue('value')`
-
-**State:**
-- Interactive → `toBeEnabled()`
-- Disabled → `toBeDisabled()`
-- Checked → `toBeChecked()`
-
-**Quantity:**
-- Exact count → `toHaveCount(3)`
-- At least → `toBeGreaterThanOrEqual(1)`
-
-**Navigation:**
-- URL changed → `toHaveURL(/pattern/)`
+| What to check | Playwright assertion |
+|---------------|----------------------|
+| Element appears | `toBeVisible()` |
+| Element hidden | `toBeHidden()` |
+| Exact text | `toHaveText('exact match')` |
+| Contains text | `toContainText('partial')` |
+| Input value | `toHaveValue('value')` |
+| Element enabled | `toBeEnabled()` |
+| Element disabled | `toBeDisabled()` |
+| Count | `toHaveCount(3)` |
+| URL changed | `toHaveURL(/pattern/)` |
 
 ---
 
-## Phase 7: AI Collaboration (If Available)
+## Phase 7: AI Collaboration
 
-### When To Use AI
-- Generating boilerplate code
-- Converting manual test cases to automation
+### When to Use AI
+- Generating page object and test boilerplate
 - Debugging failing tests
 - Creating test data
 - Writing documentation
 
-### When NOT To Use AI
+### When NOT to Use AI
 - Defining test strategy (your job)
-- Choosing what to test (risk assessment)
+- Choosing what to test (risk assessment is yours)
 - Verifying test quality (your judgment)
 - Making architecture decisions
 - Understanding business requirements
@@ -223,23 +217,33 @@ Locators: [Specify data-test attributes if known]
 Constraints: [What conventions to follow]
 ```
 
-### Verification Checklist (AI Output)
-- [ ] Locators use correct strategy
-- [ ] Scope not exceeded
-- [ ] Assertions are meaningful
-- [ ] No hardcoded waits/timeouts
-- [ ] Follows project conventions
-- [ ] Code is readable and maintainable
+### Two-Stage Review Process
+
+**Stage 1 — Claude self-reviews** before presenting code (checklist in `CLAUDE.md`)
+
+**Stage 2 — Human review** before committing:
+
+| Category | What to check |
+|----------|--------------|
+| **Locators** | `data-test` via `getByTestId()` where available. No CSS classes. Locators in page object, not test. |
+| **Assertions** | Verify state change, not just visibility. Would fail if feature broke. None inside page object methods. |
+| **Scope** | Only what was requested. One responsibility per test. Tests are independent. |
+| **Wait strategy** | No `waitForTimeout()`. No `{ force: true }`. Playwright auto-waiting trusted. |
+| **Structure** | Login in `beforeEach`. Test data from `test-data/`, not hardcoded. |
+
+Full human review reference: `docs/concepts/process.md` (this file, Phase 7)
 
 ---
 
 ## Phase 8: Execution & Maintenance
 
 ### Running Tests
-- Locally during development
-- In CI/CD on every commit
-- Before releases (full regression)
-- On schedule (nightly/weekly)
+```bash
+npx playwright test                          # run all tests
+npx playwright test tests/add-to-cart.spec.ts  # specific file
+npx playwright test --ui                     # UI mode for debugging
+npx playwright show-report                   # view HTML report
+```
 
 ### When Tests Fail
 ```
@@ -260,30 +264,24 @@ Constraints: [What conventions to follow]
 ```
 
 ### Maintenance Triggers
-- App UI changes → Update page objects
-- Requirements change → Update test scope
-- New team members → Update documentation
-- Test becomes unreliable → Refactor or remove
+- App UI changes → update page objects
+- Requirements change → update test scope
+- Test becomes unreliable → refactor or remove
 
 ---
 
 ## Phase 9: Continuous Improvement
 
-### Regular Reviews
 - [ ] Which tests provide most value?
 - [ ] Which tests are too expensive to maintain?
 - [ ] What gaps exist in coverage?
 - [ ] What can be simplified?
-
-### Knowledge Transfer
-- Document patterns in this framework
-- Create examples for common scenarios
-- Update CLAUDE.md with new conventions
-- Share learnings with team
+- [ ] What new patterns have emerged? → Document in `docs/`
+- [ ] Have AI collaboration conventions changed? → Update `CLAUDE.md`
 
 ---
 
-## Quick Reference Decision Matrices
+## Quick Reference
 
 ### Test or Don't Test?
 | Scenario | Automate? |
@@ -292,18 +290,12 @@ Constraints: [What conventions to follow]
 | Complex calculation that rarely changes | YES |
 | One-time migration script | NO |
 | Exploratory testing scenario | NO |
-| UI that changes constantly | MAYBE - consider contract testing |
+| UI that changes constantly | MAYBE |
 
 ### Page Object or Not?
 | Scenario | Create Page Object? |
 |----------|---------------------|
 | Page used by multiple tests | YES |
 | Complex page with many actions | YES |
-| One-off scenario, single test | NO - inline is fine |
+| One-off scenario, single test | NO — inline is fine |
 | Third-party page you don't control | NO |
-
----
-
-*This framework is tool-agnostic. Principles apply whether 
-using Playwright, Selenium, Cypress, REST Assured, or any 
-other testing framework.*

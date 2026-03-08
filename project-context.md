@@ -1,6 +1,6 @@
 # Playwright E2E Test Automation - Learning Project Context
 
-**Last updated:** March 17, 2026  
+**Last updated:** 2026-03-08  
 **Status:** In progress - ProductsPage implementation  
 **Timeline:** Following 3-week learning plan
 
@@ -135,6 +135,26 @@ playwright-e2e-framework-demo/
 
 ---
 
+### Day 4 (2026-03-08) - Page Object Model ✅
+
+**Topics covered:**
+- What belongs in a page object — scope discipline, shared components
+- Shared element patterns: BasePage (inheritance) vs Components folder (composition)
+- When to introduce these patterns: when you feel duplication pain, not before
+- POM vs ARIA-native testing — what the field is moving toward and why POM still matters
+- Accessibility tree: what it is, how it differs from DOM, how AI agents use it
+
+**Double Verification — ProductsPage:**
+- Manual inspection (human): 5 elements found, including dynamic state elements (cart badge, remove button) by inspecting after adding item to cart
+- AI inspection (Claude): ran `data-test` scrape on live page — found all 6 product slugs, structural/display elements, but missed dynamic state elements
+- Key learning: Claude inspects initial page state. Human inspected behaviour across states. Both needed.
+- ARIA snapshot run on live page: all 6 "Add to cart" buttons indistinguishable — no unique accessible names on SauceDemo. Concrete evidence of when ARIA falls short vs data-test.
+
+**Learning documents created:**
+- `docs/learning/03-page-object-model.md` — POM concepts, scope, shared components, double verification comparison with real data, POM vs ARIA with actual snapshot output
+
+---
+
 ### Refactoring & Consistency ✅
 **Improvements made:**
 - Unified login approach across all tests using `LoginPage` and `TEST_USERS`
@@ -174,8 +194,9 @@ playwright-e2e-framework-demo/
 
 ### What's In Progress
 ⚠️ **ProductsPage:**
-- Page object analysis started (manual inspection template filled)
-- Not yet implemented
+- Double verification complete (Steps 1-3 done): manual inspection, AI inspection, comparison documented
+- Review process to be established before implementation
+- Implementation next: `pages/products-page.ts`
 - Planned to use exact data-test values (no string conversion)
 
 ### What's Not Started
@@ -183,41 +204,32 @@ playwright-e2e-framework-demo/
 ❌ Complete user journey test
 ❌ API testing
 ❌ eslint-plugin-playwright integration
-❌ Claude Code review checklist (Garry Tan pattern)
+❌ AI review process — how to verify AI-generated code before accepting it (to be designed based on testing expert practices)
+❌ Playwright CLI exploration — ARIA snapshot-first workflow, how it compares to MCP and POM in practice
 
 ---
 
 ## 5. Next Steps
 
-### Current Task (Week 1, Day 4)
+### Current Task (Week 1, Day 4-5)
 **ProductsPage Implementation - Path C (Double Verification)**
 
-**Step 1:** Manual inspection of ProductsPage elements
-- Cart icon (`data-test` value)
-- Cart badge (`data-test` value)
-- Sort dropdown (`data-test` value, available options)
-- Add to cart button pattern
-- Remove button pattern
-- Document findings
+**Step 1:** ✅ Manual inspection of ProductsPage elements
+**Step 2:** ✅ Claude Code inspection — full data-test scrape on live page
+**Step 3:** ✅ Compare findings — documented in `docs/learning/03-page-object-model.md`
 
-**Step 2:** Claude Code inspection
-- Prompt Claude Code to inspect ProductsPage after login
-- Document all interactive elements with `data-test` attributes
-- Note element purposes and patterns
+**Step 4:** Establish review process
+- How to verify AI-generated code before accepting it
+- Based on testing expert practices, not a single source
+- Document as a reusable checklist in CLAUDE.md
 
-**Step 3:** Compare findings
-- What did human catch that AI missed?
-- What did AI catch that human missed?
-- Resolve any disagreements
-- Build final element list
-
-**Step 4:** Implement ProductsPage
+**Step 5:** Implement ProductsPage
 - Create `pages/products-page.ts`
 - Methods: `addProductToCart(dataTestId)`, `removeProductFromCart(dataTestId)`, `goToCart()`, `getCartCount()`, `sortProducts(sortOption)`
 - Use exact `data-test` values (no string conversion/abstraction)
 - Follow CLAUDE.md conventions
 
-**Step 5:** Write ProductsPage tests
+**Step 6:** Write ProductsPage tests
 - Add product to cart
 - Sort products
 - Verify cart count updates
@@ -422,7 +434,7 @@ await loginPage.login(
 5. **Future MCP integration** - Role-based locators support MCP, project dependencies for auth
 6. **Reporting** - Screenshots on failure, HTML reports, trace viewer
 
-**Planned addition (after SauceDemo):** Claude Code Review Checklist based on Garry Tan's approach - make Claude review itself before finalizing (locators, scope, maintainability, edge cases)
+**Planned addition:** AI review checklist — how to verify AI-generated code before accepting it, based on testing expert practices. To be added to CLAUDE.md once designed.
 
 ---
 
@@ -445,7 +457,6 @@ await loginPage.login(
 ## 7. Open Questions & Items to Revisit
 
 ### After SauceDemo Complete
-- [ ] Add Claude Code Review Checklist to CLAUDE.md (Garry Tan pattern)
 - [ ] Add `eslint-plugin-playwright` for automated anti-pattern detection
 - [ ] Test framework on a second application to validate portability
 - [ ] Consider adding screenshot/video configuration examples

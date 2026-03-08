@@ -89,6 +89,35 @@ use: {
 - **When fixing tests, never mark failing tests as passing by deleting assertions**
 - Failing tests indicate real issues - fix the root cause, not the assertion
 
+### Self-Review — Before Presenting Any Page Object or Test Code
+Before showing generated page object or test code, check every item:
+
+**Locators**
+- [ ] All locators use `data-test` attributes via `getByTestId()` where available
+- [ ] No CSS class selectors used
+- [ ] Locators are defined in page objects, not inside test files
+
+**Assertions**
+- [ ] Every assertion verifies a meaningful state change, not just visibility
+- [ ] Assertions would fail if the feature being tested actually broke
+- [ ] No assertions inside page object methods
+
+**Scope**
+- [ ] Only what was explicitly requested — no extra tests added
+- [ ] Each test has one clear responsibility
+- [ ] No test depends on another test's state
+
+**Wait strategy**
+- [ ] No `waitForTimeout()` or hardcoded delays
+- [ ] Playwright's auto-waiting is trusted
+- [ ] Explicit waits only where a specific race condition exists and is explained
+
+**Structure**
+- [ ] Login and setup in `beforeEach`, never inside test body
+- [ ] Test data in `test-data/`, not hardcoded in tests
+
+If any item fails, fix it before presenting. Flag to Shyaamlal if a trade-off decision is needed.
+
 ### Memory and Learning
 - Document patterns in `docs/learning/` for daily insights
 - Document concepts in `docs/concepts/` for reusable knowledge

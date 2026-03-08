@@ -200,9 +200,49 @@ Precision in prompting = less room for AI to make unauthorised decisions.
 
 A test can pass while:
 - Using unstable locators
-- Exceeding agreed scope  
+- Exceeding agreed scope
 - Missing critical assertions
 - Hiding real bugs
 
-Your job is not to get tests to green. Your job is to 
+Your job is not to get tests to green. Your job is to
 ensure green means something.
+
+---
+
+## Double Verification — Human + AI Page Inspection (2026-03-07)
+
+### The Process (Path C)
+
+Step 1 — Human inspects the page manually, documents `data-test` values
+Step 2 — AI inspects the same page independently via headless script
+Step 3 — Compare findings, resolve gaps, build final verified element list
+Step 4 — Implement page object from verified list
+
+### What Each Side Found (ProductsPage)
+
+**Human found, AI missed:**
+- `shopping-cart-badge` — only appears when cart has items (state-dependent)
+- `remove-sauce-labs-backpack` — only appears after adding to cart (state-dependent)
+
+**AI found, human didn't capture:**
+- All 6 product `add-to-cart` buttons (human only inspected Backpack)
+- `inventory-item-name`, `inventory-item-price`, `inventory-item-desc` — product detail elements
+- `item-{n}-img-link`, `item-{n}-title-link` — per-product navigation links
+- `active-option` — currently selected sort value
+- Sidebar menu elements (`open-menu`, `logout-sidebar-link` etc.)
+
+### The Trust Boundary
+
+AI is thorough on static elements visible on page load. Human catches state-dependent elements that only appear after user actions. Neither pass alone is sufficient.
+
+### Industry Alignment
+
+This maps to what practitioners call "Calibrating the Agent" — humans review AI output against business intent rather than just checking if tests pass. Per [Currents.dev State of Playwright AI 2026](https://currents.dev/posts/state-of-playwright-ai-ecosystem-in-2026): *"The job for QA teams isn't writing scripts — it's calibrating the agent by reviewing traces to ensure AI logic matches business intent."*
+
+Playwright's own Test Agents (Planner, Generator, Healer) follow the same model: AI proposes, human approves before changes are applied. ([Playwright Docs](https://playwright.dev/docs/test-agents))
+
+Per Debbie O'Brien: *"AI agents amplify QA — they don't replace human judgment about what truly matters in your application."* ([Microsoft Developer Blog](https://developer.microsoft.com/blog/the-complete-playwright-end-to-end-story-tools-ai-and-real-world-workflows))
+
+### Rule Added to Roshar
+
+As a result of this session: Claude must build from real data and sources — no lazy generalisations presented as facts.

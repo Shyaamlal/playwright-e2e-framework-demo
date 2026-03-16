@@ -101,6 +101,28 @@ CSS styling identifier. Can change when UI is restyled.
 
 ---
 
+## What Does "Role" Mean in getByRole()?
+
+Every HTML element has a **role** — what it *is* functionally, not what it looks like. Some roles come built-in from the HTML tag:
+
+| HTML tag | Implicit role |
+|----------|--------------|
+| `<button>` | `button` |
+| `<a href="...">` | `link` |
+| `<input type="checkbox">` | `checkbox` |
+| `<h1>` | `heading` |
+| `<select>` | `combobox` |
+
+So `getByRole('button', { name: 'Login' })` means: *find an element that functions as a button, labelled "Login"*. The `name` is the accessible name — usually the visible text on the element.
+
+This is exactly how a screen reader describes the element, which is why `getByRole()` and accessibility are the same problem.
+
+**Why it's more stable than CSS:** A designer can rename `.btn-primary` to `.cta-button` and your test breaks. But they can't change a `<button>` into something that isn't a button without breaking the UI itself.
+
+**The catch:** If the element has no meaningful role or accessible name — like SauceDemo's six identical `"Add to cart"` buttons — `getByRole()` can't tell them apart. That's when `data-test` wins.
+
+---
+
 ## The Ambiguous Locator Problem
 
 SauceDemo has multiple "Add to cart" buttons - one per product. Using `getByText("Add to cart")` would either:

@@ -31,25 +31,23 @@ A Playwright TypeScript test automation framework demonstrating an **AI-native t
 
 ## 2. Learning Structure
 
-### 3-Week Learning Plan
+Building organically — no fixed timeline. Topics are covered when ready, not on a schedule. The order below reflects what makes sense to build next, not when it must happen.
 
-**Week 1: Playwright + TypeScript Foundations**
-- Day 1: Environment setup, GitHub, CI/CD
-- Day 2-3: Locators, HTML fundamentals, assertions
-- Day 4-5: Page Object Model, first complete tests
-- Day 6-7: Test data abstraction, framework structure
+**Foundation (complete):**
+- Environment setup, GitHub, CI/CD
+- Locators, HTML fundamentals, assertions
+- Page Object Model, test data abstraction
+- AI-native review process
 
-**Week 2: Advanced Patterns + Python/Pytest**
-- Page objects for complex flows
-- Python basics for API testing
-- Pytest framework
-- SQL basics for data validation
+**Next:**
+- ProductsPage tests
+- Checkout flow (CheckoutInfoPage, CheckoutOverviewPage, ConfirmationPage)
+- Complete user journey test
 
-**Week 3: Integration + Polish**
-- Combine Playwright E2E + Python API tests
-- Portfolio documentation
+**Later:**
+- API testing
+- Portfolio documentation and polish
 - Interview preparation
-- Final refinements
 
 ---
 
@@ -211,37 +209,29 @@ playwright-e2e-framework-demo/
 
 ## 5. Next Steps
 
-### Current Task (Week 1, Day 4-5)
-**ProductsPage Implementation - Path C (Double Verification)**
+### Agreed Plan (as of 2026-03-14)
 
-**Step 1:** ✅ Manual inspection of ProductsPage elements
-**Step 2:** ✅ Claude Code inspection — full data-test scrape on live page
-**Step 3:** ✅ Compare findings — documented in `docs/learning/03-page-object-model.md`
+**Step 1 — Refactor `add-to-cart.spec.ts`** ← current
+- Replace raw locators with `ProductsPage` methods and `PRODUCTS` test data
+- Spec should read through the POM, not directly via `page.locator()`
 
-**Step 4:** Establish review process
-- How to verify AI-generated code before accepting it
-- Based on testing expert practices, not a single source
-- Document as a reusable checklist in CLAUDE.md
+**Step 2 — Build 4 remaining page objects via double-verification process**
 
-**Step 5:** Implement ProductsPage
-- Create `pages/products-page.ts`
-- Methods: `addProductToCart(dataTestId)`, `removeProductFromCart(dataTestId)`, `goToCart()`, `getCartCount()`, `sortProducts(sortOption)`
-- Use exact `data-test` values (no string conversion/abstraction)
-- Follow CLAUDE.md conventions
+Each page goes through the same process:
+1. Shyaamlal manually inspects the live page, fills in `MyXxxPage Inspection.md`
+2. Claude Code scrapes the live page independently
+3. We compare findings and resolve differences
+4. Agreed locators → implementation → committed
 
-**Step 6:** Write ProductsPage tests
-- Add product to cart
-- Sort products
-- Verify cart count updates
+Pages to build (in order):
+- **CartPage** — `/cart.html` — view cart, remove items, proceed to checkout
+- **CheckoutInfoPage** — `/checkout-step-one.html` — first name, last name, zip
+- **CheckoutOverviewPage** — `/checkout-step-two.html` — price summary, finish button
+- **ConfirmationPage** — `/checkout-complete.html` — success message
 
----
-
-### Upcoming (Week 1, Days 5-7)
-**Checkout Flow:**
-- `CheckoutInfoPage` - form with first name, last name, zip
-- `CheckoutOverviewPage` - price summary, finish button
-- One complete test: login → add product → checkout → confirmation
-- Use `test.step()` for multi-step flow (not `test.describe.serial`)
+**Step 3 — E2E test**
+One complete test: login → add 2 products → go to cart → fill checkout info → confirm order
+Use `test.step()` for each phase.
 
 **Documentation:**
 - `docs/learning/03-page-object-model.md`
@@ -456,10 +446,32 @@ await loginPage.login(
 
 ## 7. Open Questions & Items to Revisit
 
+### Shared / Global Elements — Architecture Decision Pending
+- Sidebar links (`logout-sidebar-link`, `inventory-sidebar-link`, etc.) and menu toggles (`open-menu`, `close-menu`) appear on every page after login
+- Currently out of scope — no tests need them yet
+- When the first test requires them, decide: add to each page object individually, or create a shared Header/BasePage component
+- Trigger: when you feel duplication across two or more page objects
+
+### Visual & Responsive Testing — Future Layer
+Currently building functional tests only (correct behaviour, correct data, correct navigation). Two additional testing layers not yet implemented:
+
+**Visual regression testing** — verifying the UI *looks* right, not just that elements exist:
+- Playwright's built-in `toHaveScreenshot()` takes a baseline screenshot and fails if pixels differ on future runs
+- Third-party tools: Percy, Applitools (more powerful diffing, cross-browser visual comparison)
+- Approach: take screenshots at key states (cart with items, checkout complete), compare on every run
+
+**Responsive / multi-viewport testing** — verifying layout across screen sizes:
+- Playwright supports viewport configuration per test: `{ width: 375, height: 812 }` for mobile, `{ width: 1440, height: 900 }` for desktop
+- Can simulate named devices: `devices['iPhone 13']`, `devices['iPad']`
+- Visual regression at multiple viewports catches layout shifts that functional tests miss
+
+We already cover cross-browser (Chromium, Firefox, WebKit). Visual and responsive are the next layer — worth adding after SauceDemo functional tests are complete. Strong portfolio addition.
+
 ### After SauceDemo Complete
 - [ ] Add `eslint-plugin-playwright` for automated anti-pattern detection
 - [ ] Test framework on a second application to validate portability
-- [ ] Consider adding screenshot/video configuration examples
+- [ ] Add visual regression testing with `toHaveScreenshot()` at key states
+- [ ] Add responsive testing at mobile/tablet/desktop viewports
 
 ### ProductsPage Design Questions (Pending Resolution)
 **Locator abstraction level:**

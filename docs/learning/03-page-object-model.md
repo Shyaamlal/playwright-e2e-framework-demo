@@ -87,6 +87,22 @@ Six products. Six buttons. All named **"Add to cart"**. No way to tell them apar
 
 ---
 
+## Why XPath Disappeared
+
+Ten years ago, XPath was considered the key skill in Selenium WebDriver. Now it's a last resort. That shift is worth understanding.
+
+**The Selenium era:** Apps were built without testers in mind. No test attributes, often poor semantic HTML. XPath let you navigate the raw DOM structure to find anything — `//div[@class='header']/ul/li[2]/a`. Precise but brittle. The skill was knowing how to write those paths.
+
+**What changed:**
+- **Semantic HTML became standard** — developers started using proper roles, labels, and headings
+- **Accessibility became a legal requirement** in many markets (WCAG compliance) — this pushed devs to write HTML that screen readers can navigate cleanly, which `getByRole()` benefits from directly
+- **Test attributes became a best practice** — the industry learned that `data-test` IDs are cheap to add and make tests dramatically more stable
+- **Playwright was designed for this world** — built assuming modern apps, so role-based and test-id locators are first-class citizens. XPath is supported but rarely needed.
+
+**What it signals today:** If you need XPath, it usually means one of two things — a legacy app, or a modern app built without testing or accessibility in mind. Both are worth flagging.
+
+---
+
 ## Sources
 - [Debbie O'Brien — Letting Playwright MCP Explore your site](https://dev.to/debs_obrien/letting-playwright-mcp-explore-your-site-and-write-your-tests-mf1)
 - [State of Playwright AI Ecosystem in 2026 — Currents.dev](https://currents.dev/posts/state-of-playwright-ai-ecosystem-in-2026)
